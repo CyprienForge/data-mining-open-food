@@ -15,7 +15,6 @@ def load_data():
 def clean(df):
     df = clean_columns(df)
     df = get_best_rows(df)
-    print(df)
     return df
 
 def get_best_rows(df, n=25000):
@@ -64,3 +63,22 @@ def remove(df):
     df = df.drop(columns=[c for c in cols_a_supprimer if c in df.columns])
 
     return df
+
+def detect_type(serie: pd.DataFrame) -> str:
+    s = pd.Series(serie).dropna()
+    match s.dtype.name:
+        case 'float64':
+            if s.apply(float.is_integer).all():
+                return "Quantitatif discret"
+            return "Quantitatif continu"
+        case 'int64':
+            return "Quantitatif discret"
+        case _:
+            ORDINAL = ['faible', 'moyen', 'élevé', 'très élevé',
+                       'petit', 'grand', 'jamais', 'parfois', 'souvent',
+                       'toujours', 'mauvais', 'bien', 'très bien', 'excellent',
+                       'débutant', 'intermédiaire', 'avancé', 'expert',
+                       'xs', 's', 'm', 'l', 'xl', '2xl', '3xl']
+            if any(v.lower() in ORDINAL for v in s):
+                return 'Qualitatif ordinal'
+            return 'Qualitatif nominal'

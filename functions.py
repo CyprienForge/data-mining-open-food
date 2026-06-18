@@ -23,7 +23,6 @@ def load_data(uploaded_file=None):
 
     CACHE_FILE.parent.mkdir(exist_ok=True)
     df.to_csv(CACHE_FILE, index=False)
-
     return df
 
 def clean(df):
@@ -71,11 +70,10 @@ def remove(df):
 
         "states",
         "ingredients_text",
-        "serving_size",
+        "serving_size"
     ]
 
     df = df.drop(columns=[c for c in cols_a_supprimer if c in df.columns])
-
     return df
 
 def detect_type(serie: pd.DataFrame) -> str:

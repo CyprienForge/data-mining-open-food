@@ -144,3 +144,40 @@ if method in ("K-Means", "Spectral Clustering"):
 
     plt.tight_layout()
     st.pyplot(fig2)
+
+st.header("Statistiques des clusters")
+
+df_work = pd.DataFrame(X_raw.values, columns=numeric_cols)
+df_work["_cluster"] = labels
+
+for lbl in unique_labels:
+    sub = df_work[df_work["_cluster"] == lbl][numeric_cols]
+    st.subheader(f"Cluster {lbl} — {len(sub)} points")
+
+    moyennes = sub.mean().rename("Moyenne")
+    ecarts = sub.std().rename("Écart-type")
+    stats = pd.concat([moyennes, ecarts], axis=1).T
+
+    if method == "K-Means":
+        stats.loc["Centroïde"] = model.cluster_centers_[lbl]
+
+    st.dataframe(stats, use_container_width=True)
+
+if -1 in labels:
+    st.write(f"**Points bruit :** {(labels == -1).sum()}")
+
+st.header("Interprétation métier")
+
+global_mean = df_work[numeric_cols].mean()
+global_std = df_work[numeric_cols].std().replace(0, 1)
+
+for lbl in unique_labels:
+    sub = df_work[df_work["_cluster"] == lbl][numeric_cols]
+    z = (sub.mean() - global_mean) / global_std
+    top_high = z.nlargest(3).index.tolist()
+    top_low = z.nsmallest(3).index.tolist()
+    pct = len(sub) / len(df_work) * 100
+    desc = (f"**Cluster {lbl}** ({len(sub)} points, {pct:.1f}% du jeu) : "
+            f"valeurs élevées pour {', '.join(f'*{c}*' for c in top_high)} ; "
+            f"valeurs faibles pour {', '.join(f'*{c}*' for c in top_low)}.")
+    st.markdown(desc)

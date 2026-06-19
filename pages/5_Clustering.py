@@ -98,3 +98,49 @@ ax.set_xlabel("PC1"); ax.set_ylabel("PC2")
 if dim == "3D": ax.set_zlabel("PC3")
 ax.legend(fontsize=7)
 st.pyplot(fig)
+
+st.header("Indices d'évaluation")
+
+if n_clusters >= 2:
+    mask_valid = labels != -1
+    X_eval, labels_eval = X_work[mask_valid], labels[mask_valid]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Silhouette ↑", f"{silhouette_score(X_eval, labels_eval):.3f}")
+    c2.metric("Davies-Bouldin ↓", f"{davies_bouldin_score(X_eval, labels_eval):.3f}")
+    c3.metric("Calinski-Harabasz ↑", f"{calinski_harabasz_score(X_eval, labels_eval):.0f}")
+
+if method in ("K-Means", "Spectral Clustering"):
+    k_range = range(2, 11)
+    sils, dbs, chs, inertias = [], [], [], []
+
+    for ki in k_range:
+        if method == "K-Means":
+            m = KMeans(ki, n_init=10, random_state=42)
+        else:
+            m = SpectralClustering(n_clusters=ki, affinity=affinity, gamma=gamma, n_neighbors=n_neighbors_spec, random_state=42, assign_labels="kmeans")
+
+        lbl = m.fit_predict(X_work)
+        sils.append(silhouette_score(X_work, lbl))
+        dbs.append(davies_bouldin_score(X_work, lbl))
+        chs.append(calinski_harabasz_score(X_work, lbl))
+
+        if method == "K-Means":
+            inertias.append(m.inertia_)
+
+    if method == "K-Means":
+        n_plots = 4
+    else :
+        nb_plots = 3
+
+    fig2, axes = plt.subplots(1, n_plots, figsize=(4 * n_plots, 4))
+
+    for ax_, data, title in zip(axes, [sils, dbs, chs], ["Silhouette ↑", "Davies-Bouldin ↓", "Calinski-Harabasz ↑"]):
+        ax_.plot(list(k_range), data, marker="o")
+        ax_.set_title(title); ax_.set_xlabel("k")
+
+    if method == "K-Means":
+        axes[-1].plot(list(k_range), inertias, marker="o")
+        axes[-1].set_title("Inertie (coude)"); axes[-1].set_xlabel("k")
+
+    plt.tight_layout()
+    st.pyplot(fig2)

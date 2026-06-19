@@ -15,6 +15,7 @@ st.set_page_config(
 st.title("Page 2 - Nettoyage des données")
 
 df = load_data(uploaded_file=None, is_clean=True)
+df_clean = df.copy()
 
 st.subheader("Aperçu des données")
 st.dataframe(df)

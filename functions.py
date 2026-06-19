@@ -62,7 +62,8 @@ def remove(df):
         "created_datetime",
         "last_modified_t",
         "last_modified_datetime",
-
+        "pnns_groups_1",
+        "pnns_groups_2",
         "brands_tags",
         "countries_tags",
         "countries_en",

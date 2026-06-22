@@ -71,6 +71,16 @@ labels = np.array(model.fit_predict(X_work))
 unique_labels = sorted([l for l in np.unique(labels) if l != -1])
 n_clusters = len(unique_labels)
 
+model = SpectralClustering(
+    n_clusters=k,
+    affinity=affinity,        
+    gamma=gamma,
+    n_neighbors=n_neighbors_spec,
+    random_state=42,
+    assign_labels="kmeans",
+)
+labels = model.fit_predict(X_work)
+
 if method == "DBSCAN":
     st.metric("Clusters détectés", n_clusters)
     st.metric("Points bruit", (labels == -1).sum())
@@ -188,3 +198,13 @@ for lbl in unique_labels:
             f"valeurs élevées pour {', '.join(f'*{c}*' for c in top_high)} ; "
             f"valeurs faibles pour {', '.join(f'*{c}*' for c in top_low)}.")
     st.markdown(desc)
+
+    if "overall" in df.columns:
+        indices_cluster = X_raw.index[df_work["_cluster"] == lbl]
+        top5 = (
+            df.loc[indices_cluster]
+            .nlargest(5, "overall")[["short_name", "overall"]]
+            .reset_index(drop=True)
+        )
+        top5.index += 1
+        st.dataframe(top5, use_container_width=True)
